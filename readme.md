@@ -2,7 +2,7 @@
 
 * Авторы: Сергей Шишминцев, Alexy Sadovoi, Сергей A.K.A. Electrik, Kvark и другие разработчики
 * Скачать [стабильную версию](https://www.nvaccess.org/addonStore/legacy?file=newfon)
-* Совместимость с NVDA: 2019.2 по 2025.1
+* Совместимость с NVDA: 2019.2 по 2026.1
 
 ### О Newfon
 
@@ -27,13 +27,15 @@ Newfon — синтезатор речи, впервые с момента вы�
 
 ## История изменений
 
-### Версия 2026.08.20
+### Версия 2026.08.21
 
 * Ядро теперь собирается из исходников. Всем известно, что по сути это тот же [ruTTS](https://github.com/poretsky/ru_tts), а посему воссоздать недостающее (4 голоса) было несложно.
-* Теперь некоторые параметры живут в ini- файле, который, если его нет, будет создан при первом использовании синтезатора.
 * Добавлен параметр "Старый алгоритм изменения скорости". Меняется также через ini.
 * Теперь вместо старого словаря используется словарь произношений [rulex](https://github.com/poretsky/rulex).
 * Совместимость с 64- битными версиями nvda.
+* &#x20;Теперь некоторые параметры живут в ini- файле, который, если его нет, будет создан при первом использовании синтезатора. Файл лежит по пути C:\\Users\\<username>\\AppData\\Roaming.В этом файле имеются такие параметры: samples\_per\_sec- частота выходного сигнала, interpolation\_multiplier- интерполяция, interpolation\_algorithm- алгоритм интерполяции. Также как и в ru\_TTS имеются секции Characters, SingleCharacters.
+
+Примечание: совместимость со старыми версиями NVDA проверить не удалось.
 
 ### Версия 2025.1
 
@@ -125,61 +127,27 @@ speech.BreakCommand — данная возможность требуется �
 
 ### Требования
 
-* [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) в варианте ucrt-x86_64
-  — нужны обе цели, i686-w64-mingw32 и x86_64-w64-mingw32. Оттуда же берётся
-  mingw32-make. Установка: `winget install MartinStorsjo.LLVM-MinGW.UCRT`
-* [Git for Windows](https://git-scm.com/download/win) — из его состава
-  Makefile использует sh, mkdir, rm и touch
-* [CMake](https://cmake.org/) — собирает pcre2, на котором работает
-  [rulex](https://github.com/poretsky/rulex). Установка: `winget install Kitware.CMake`
-* [7-Zip](https://www.7-zip.org/) — упаковывает готовое дополнение.
-  Установка: `winget install 7zip.7zip`
-* Обе разрядности собираются всегда: 32-разрядные NVDA поддерживаются
-  наравне с 64-разрядными. Словарь [rulex](https://github.com/poretsky/rulex)
-  хранится в формате LMDB, а тот завязан на разрядность, поэтому в
-  дополнение попадают две базы, `rulex-x86.db` и `rulex-x64.db`, каждую
-  наполняет lexholder своей разрядности
-* Python 3 с модулем markdown — собирает документацию. Модуль ставится
-  командой `build.bat deps` или `python -m pip install markdown`
-* Только для цели `pot`, то есть для обновления шаблона перевода,
-  дополнительно нужен xgettext из состава gettext. Для обычной сборки он
-  не требуется, каталоги переводов собирает входящий в проект `msgfmt.py`
-
+* [llvm-mingw](https://github.com/mstorsjo/llvm-mingw) в варианте ucrt-x86\_64. Нужны   i686-w64-mingw32 и x86\_64-w64-mingw32.
+* [Git for Windows](https://git-scm.com/download/win)
+* [CMake](https://cmake.org/)
+* [7-Zip](https://www.7-zip.org/)
+* Python 3 и модуль markdown.
 Ничего из перечисленного не обязано лежать в PATH: `build.bat` сам находит
-llvm-mingw, CMake, 7-Zip и Git в обычных местах установки.
+llvm-mingw, CMake, 7-Zip и Git в стандартных местах установки.
 
-Ядро подключается к дополнению подмодулем, поэтому его можно собирать
-двумя способами: целиком вместе с дополнением или отдельно.
+### Сборка дополнения
 
-### Сборка дополнения целиком
+Из корня проекта дополнения выполнить
 
-Из корня проекта дополнения, где лежит это ядро в каталоге `Newfon_core`:
+\* build.bat            собрат\*ь дополнение
+\* build.bat clean      удалить результаты сборки
+\* build.bat clean-all  то же плюс собранные зависимости (pcre2)
+\* build.bat pot        обновить шаблон перевода
+\* build.bat deps       доустановить модуль markdown для Python
 
-    build.bat            собрать newfon.nvda-addon
-    build.bat clean      удалить результаты сборки
-    build.bat clean-all  то же плюс собранные зависимости (pcre2)
-    build.bat pot        обновить шаблон перевода
-    build.bat deps       доустановить модуль markdown для Python
 
-То же самое напрямую через make, если инструменты уже в PATH:
 
-    cd src
-    make
+Можно собрать также через make, если инструменты уже в PATH командой make.
 
-Результат — файл `src/newfon.nvda-addon`. Отдельные цели: `make ARCH=x86
-newfon-dll`, `make ARCH=x64 newfon-dll`.
 
-### Сборка одного ядра
-
-Ядру, кроме компилятора и make, ничего не нужно, ни CMake, ни 7-Zip, ни
-Python. В каталоге ядра:
-
-    make ARCH=x86                 статическая библиотека
-    make ARCH=x86 newfon_speak    плюс консольная утилита
-    make ARCH=x64                 то же для 64 разрядов
-
-`newfon_speak` пишет wav-файл и принимает текст в koi8-r, им удобно
-проверять ядро без NVDA:
-
-    build/x86/newfon_speak.exe -v 1 -r 75 -a 5 -o out.wav -f text.koi8
 
