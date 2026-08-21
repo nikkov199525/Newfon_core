@@ -1,0 +1,27 @@
+/* numerics.h -- Numeric string transcription
+ *
+ * Copyright (C) 1990, 1991 Speech Research Laboratory, Minsk
+ * Copyright (C) 2005 Igor Poretsky <poretsky@mlbox.ru>
+ * Copyright (C) 2021 Boris Lobanov <lobbormef@gmail.com>
+ * Copyright (C) 2021 Alexander Ivanov <ivalex01@gmail.com>
+ *
+ * SPDX-License-Identifier: MIT
+ */
+
+#ifndef NEWFON_NUMERICS_H
+#define NEWFON_NUMERICS_H
+
+#include "transcription.h"
+#include "sink.h"
+
+
+/* Digit detection macro */
+#define IS_DIGIT(c) ((c >= '0') && (c <= '9'))
+
+
+/* Global functions */
+
+/* Transcribe numeric string from input and pass result to the consumer */
+extern void process_number(input_t *input, sink_t *consumer);
+
+#endif
