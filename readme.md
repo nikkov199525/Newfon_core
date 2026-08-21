@@ -139,11 +139,11 @@ llvm-mingw, CMake, 7-Zip и Git в стандартных местах уста�
 
 Из корня проекта дополнения выполнить
 
-\* build.bat            собрат\*ь дополнение
-\* build.bat clean      удалить результаты сборки
-\* build.bat clean-all  то же плюс собранные зависимости (pcre2)
-\* build.bat pot        обновить шаблон перевода
-\* build.bat deps       доустановить модуль markdown для Python
+* build.bat            собрать дополнение
+* build.bat clean      удалить результаты сборки
+* build.bat clean-all  то же плюс собранные зависимости (pcre2)
+* build.bat pot        обновить шаблон перевода
+* build.bat deps       доустановить модуль markdown для Python
 
 
 
