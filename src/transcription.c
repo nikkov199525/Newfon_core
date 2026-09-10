@@ -344,7 +344,8 @@ void process_text(const char *text, sink_t *consumer)
           break;
         case 'w':
         case 'W':
-          c = 'U';
+          /* The original Newfon reads w as "в", so qwen is "квен" */
+          c = 'V';
           break;
         case 'y':
         case 'Y':
