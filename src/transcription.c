@@ -25,6 +25,9 @@
 
 /* Local macros */
 #define PAIR(a, b) ((((uint16_t)(a)) << 8) | (((uint16_t)(b)) & 0xFF))
+/* strchr() finds the terminating zero as well, so a zero character
+   would match any set and yield an index past its end */
+#define IN_SET(set, c) ((c) ? strchr((set), (c)) : NULL)
 #ifdef _MSC_VER
 #define strdup(p) _strdup(p)
 #endif
@@ -276,7 +279,7 @@ static uint8_t correct_consonant(uint8_t idx, char following)
 {
   if (memchr(consonants + 5, following, 10))
     return unvoicify_hard(idx, following);
-  else if (strchr(bgdjz, following))
+  else if (IN_SET(bgdjz, following))
     return (((idx != PH_J) && (idx != PH_N)) || (following != '_')) ?
       voicify(hard_consonant_phs, idx) : PH_ZH;
   return ((idx != PH_N) || (following != '_')) ?
@@ -565,7 +568,7 @@ void process_text(const char *text, sink_t *consumer)
               unsigned char nextc = input.start[1];
               if (memchr(vocalics, nextc, 5) || (nextc == 'X'))
                 {
-                  s = strchr(ndts, last_char);
+                  s = IN_SET(ndts, last_char);
                   if (s)
                     sink_replace(consumer, ndts_soft_phs[s - ndts]);
                 }
@@ -592,7 +595,7 @@ void process_text(const char *text, sink_t *consumer)
                   nextc = ((input.end - input.start) > 1) ? input.start[1] : ',';
                   if ((memchr(symbols + 1, nextc, 6) && (sink_last(consumer) != PH_SPACE)) || memchr(consonants + 5, nextc, 10))
                     sink_put(consumer, unvoicify(soft_consonant_phs, idx));
-                  else if (strchr(bgdjz, nextc))
+                  else if (IN_SET(bgdjz, nextc))
                     sink_put(consumer, voicify(soft_consonant_phs, idx));
                   else sink_put(consumer, soft_consonant_phs[idx]);
                 }

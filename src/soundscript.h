@@ -18,18 +18,27 @@
 #include "sink.h"
 #include "timing.h"
 #include "modulation.h"
+#include "transcription.h"
 
 
 /* Data size definition */
-#define MAX_SOUNDS 1000
+/* A phoneme gives at most a few sounds. The original 1000 was not enough
+   for a long clause of vowels and the script overran */
+#define MAX_SOUNDS (TRANSCRIPTION_BUFFER_SIZE * 4)
 #define NSTAGES 12
 
 /* Number of time plan rows */
 #define TIME_PLAN_ROWS 9
 
+/* Number of time plan columns. The original engine had 100 of them and
+   no bounds checks, so a long clause without pauses overran the plan.
+   A column is filled per phoneme, and a clause never holds more phonemes
+   than the transcription buffer does */
+#define TIME_PLAN_COLUMNS TRANSCRIPTION_BUFFER_SIZE
+
 
 /* Time plan pointer definition */
-typedef uint8_t (*time_plan_ptr_t)[100];
+typedef uint8_t (*time_plan_ptr_t)[TIME_PLAN_COLUMNS];
 
 /* Sound unit structure */
 typedef struct

@@ -209,7 +209,8 @@ void process_number(input_t *input, sink_t *consumer)
                           sink_write(consumer, one_int, 6);
                           break;
                         case 0:
-                          if (s[2] == '+')
+                          /* s[1] goes first: past the end of the text s[2] is out of the string */
+                          if (s[1] && (s[2] == '+'))
                             {
                               if (s[1] == 'A')
                                 {
@@ -229,7 +230,7 @@ void process_number(input_t *input, sink_t *consumer)
                         default:
                           if (flags & NUMBER_FRACTION)
                             {
-                              if ((s < input->end) && IS_DIGIT(s[2]))
+                              if (((s + 1) < input->end) && IS_DIGIT(s[2]))
                                 transcribe_digit(consumer, c, s[0]);
                               else sink_write(consumer, one_int, 6);
                             }
@@ -245,7 +246,7 @@ void process_number(input_t *input, sink_t *consumer)
                       nc = 2;
                       if (c == '2')
                         {
-                          if ((triplets == 0) && (s[2] == '+') && (s[1] == 'E'))
+                          if ((triplets == 0) && (s[1] == 'E') && (s[2] == '+'))
                             {
                               input->start += 2;
                               s = input->start;

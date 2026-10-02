@@ -190,11 +190,15 @@ void timing_setup(timing_t *timing, int speech_rate, int acceleration, int pause
 void apply_speechrate(soundscript_t *script, timing_t *timing, time_plan_ptr_t draft)
 {
   uint16_t i;
-  uint8_t n = 1;
+  uint16_t n = 1;
 
   for (i = 0; i < script->length; i++)
     {
       uint8_t j = script->sounds[i].id;
+      /* The plan has a column per phoneme, so it never runs out for a
+         real clause. The check only keeps a broken one inside the plan */
+      if (n >= TIME_PLAN_COLUMNS)
+        n = TIME_PLAN_COLUMNS - 1;
       if (j < 189)
         {
           if ((draft[1][n] != 4) || (script->sounds[i].stage != 3))

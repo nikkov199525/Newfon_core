@@ -60,6 +60,9 @@ static const uint8_t soundset5[] =
 /* Put specified sound into the soundscript */
 static void put_sound(soundscript_t *script, uint8_t sound, uint8_t stage)
 {
+  /* The last unit stays free: the following stages look one unit ahead */
+  if (script->length >= (MAX_SOUNDS - 1))
+    return;
   script->sounds[script->length].id = sound;
   script->sounds[script->length++].stage = stage;
 }

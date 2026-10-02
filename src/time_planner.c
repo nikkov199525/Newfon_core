@@ -23,16 +23,22 @@
 #define DISCRIMINANT(x, y) ((x != y) ? ((x != 1) ? 3 : 2) : 1)
 
 
+/* Size of a scratch area row. The original engine had 50 cells in a row
+   with byte-sized indices, so a clause of more than 49 syllables spilled
+   into the next row, and indices wrapped around on longer ones. Counts
+   below never exceed the number of phonemes in the transcription buffer */
+#define AREA_SIZE (TRANSCRIPTION_BUFFER_SIZE + 8)
+
 /* Scratch data structure */
 typedef struct
 {
-  uint8_t value;
-  uint8_t delta;
+  uint16_t value;
+  uint16_t delta;
   uint8_t flag;
-  uint8_t ndx1;
-  uint8_t ndx2;
-  uint8_t itercount;
-  uint8_t area[5][50];
+  uint16_t ndx1;
+  uint16_t ndx2;
+  uint16_t itercount;
+  uint16_t area[5][AREA_SIZE];
 } workspace_t;
 
 
@@ -100,7 +106,7 @@ time_plan_ptr_t plan_time(uint8_t *transcription)
   uint8_t check_prev_trigger = 0;
   uint8_t check_prev = 0;
   uint8_t skip_itercount = 1;
-  uint8_t nitems = 0;
+  uint16_t nitems = 0;
 
   draft = calloc(TIME_PLAN_ROWS, sizeof(*draft));
   if (!draft)
@@ -127,12 +133,12 @@ time_plan_ptr_t plan_time(uint8_t *transcription)
                 uint8_t restart = 0;
                 uint8_t setcase = 0;
                 uint8_t tmp = 0;
-                uint8_t m = 1;
-                uint8_t k = found - set0;
-                uint8_t j;
-                uint8_t ndx1 = 1;
-                uint8_t ndx2 =1;
-                uint8_t item;
+                uint16_t m = 1;
+                uint16_t k = found - set0;
+                uint16_t j;
+                uint16_t ndx1 = 1;
+                uint16_t ndx2 =1;
+                uint16_t item;
 
                 memset(values, 0, TIME_PLAN_ROWS);
                 if (k > 3)
@@ -151,12 +157,12 @@ time_plan_ptr_t plan_time(uint8_t *transcription)
                     j = scratch->ndx2;
                     for (i = 1; i <= scratch->area[4][item]; i++)
                       {
-                        uint8_t ndx3;
+                        uint16_t ndx3;
                         scratch->ndx2++;
                         for (ndx3 = 1; ndx3 <= scratch->area[3][scratch->ndx2]; ndx3++)
                           if (scratch->area[0][++(scratch->ndx1)])
                             {
-                              int8_t l, n;
+                              int l, n;
                               if (scratch->area[0][scratch->ndx1] == 1)
                                 scratch->area[1][scratch->ndx2] = 1;
                               else if (scratch->area[0][scratch->ndx1] != 0xFF)
@@ -179,7 +185,7 @@ time_plan_ptr_t plan_time(uint8_t *transcription)
                     for (i = 1; i <= k; i++)
                       if (scratch->area[1][++(scratch->ndx2)] == 1)
                         {
-                          int8_t l, n;
+                          int l, n;
                           for (l = scratch->ndx2 - i + 1; l < scratch->ndx2; l++)
                             scratch->area[1][l] = 2;
                           n = scratch->area[4][item] + scratch->ndx2 - i;
@@ -195,18 +201,18 @@ time_plan_ptr_t plan_time(uint8_t *transcription)
                 i = TRANSCRIPTION_START - 1;
                 for (item = 1; item <= nitems; item++)
                   {
-                    uint8_t ndx4;
+                    uint16_t ndx4;
                     values[3] = DISCRIMINANT(item, nitems);
                     for (ndx4 = 1; ndx4 <= scratch->area[4][item]; ndx4++, ndx2++)
                       {
-                        uint8_t ndx5;
+                        uint16_t ndx5;
                         scratch->ndx2++;
                         values[6] = MIN(scratch->area[3][ndx2], 4);
                         for (ndx5 = 1; ndx5 <= scratch->area[3][ndx2]; ndx5++, ndx1++)
                           {
                             scratch->ndx1++;
                             values[2] = DISCRIMINANT(ndx5, scratch->area[3][ndx2]);
-                            for (j = 1; (j <= scratch->area[2][ndx1]) && (m < sizeof(*draft)); j++, m++)
+                            for (j = 1; (j <= scratch->area[2][ndx1]) && (m < TIME_PLAN_COLUMNS); j++, m++)
                               {
                                 uint8_t phoncode_cur = transcription[i];
                                 uint8_t phoncode_prev = phoncode_cur;
