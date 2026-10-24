@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #include "phonemes.h"
 #include "numerics.h"
@@ -76,13 +77,61 @@ static const uint8_t hundreds[] = /* 100..900 */
     9, PH_V, PH_A, PH_S_, PH_E, PH_M, PH_S, PH_O, PH_PRIMARY_STRESS, PH_T,
     9, PH_D_, PH_E, PH_V_, PH_A, PH_T, PH_S, PH_O, PH_PRIMARY_STRESS, PH_T
   };
-static const uint8_t periods[] =
+/* Short-scale names: 10^3 through 10^150 (up to 153 digits). */
+static const uint8_t periods[][32] =
   {
-    6, PH_T, PH_Y, PH_PRIMARY_STRESS, PH_S_, PH_A, PH_CH,
-    7, PH_M_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N,
-    8, PH_M_, PH_I, PH_L_, PH_I, PH_A, PH_PRIMARY_STRESS, PH_R, PH_T,
-    8, PH_T, PH_R_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N
+    { 6, PH_T, PH_Y, PH_PRIMARY_STRESS, PH_S_, PH_A, PH_CH }, /* тысяч */
+    { 7, PH_M_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* миллион */
+    { 8, PH_M_, PH_I, PH_L_, PH_I, PH_A, PH_PRIMARY_STRESS, PH_R, PH_T }, /* миллиард */
+    { 8, PH_T, PH_R_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* триллион */
+    { 11, PH_K, PH_V, PH_A, PH_D, PH_R_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квадриллион */
+    { 11, PH_K, PH_V_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квинтиллион */
+    { 11, PH_S_, PH_E, PH_K, PH_S_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* секстиллион */
+    { 10, PH_S_, PH_E, PH_P, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* септиллион */
+    { 9, PH_A, PH_K, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* октиллион */
+    { 9, PH_N, PH_A, PH_N_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* нониллион */
+    { 9, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* дециллион */
+    { 11, PH_U, PH_N_, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* ундециллион */
+    { 12, PH_D, PH_U, PH_A, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* дуодециллион */
+    { 12, PH_T, PH_R_, PH_E, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* тредециллион */
+    { 17, PH_K, PH_V, PH_A, PH_T, PH_T, PH_U, PH_A, PH_R, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* кваттуордециллион */
+    { 13, PH_K, PH_V_, PH_I, PH_N_, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квиндециллион */
+    { 13, PH_S_, PH_E, PH_K, PH_S_, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* сексдециллион */
+    { 15, PH_S_, PH_E, PH_P, PH_T_, PH_E, PH_N_, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* септендециллион */
+    { 13, PH_A, PH_K, PH_T, PH_A, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* октодециллион */
+    { 14, PH_N, PH_A, PH_V_, PH_E, PH_M, PH_D_, PH_E, PH_C, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* новемдециллион */
+    { 12, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* вигинтиллион */
+    { 14, PH_U, PH_N, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* унвигинтиллион */
+    { 15, PH_D, PH_U, PH_A, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* дуовигинтиллион */
+    { 15, PH_T, PH_R_, PH_E, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* тревигинтиллион */
+    { 20, PH_K, PH_V, PH_A, PH_T, PH_T, PH_U, PH_A, PH_R, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* кваттуорвигинтиллион */
+    { 16, PH_K, PH_V_, PH_I, PH_N, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квинвигинтиллион */
+    { 16, PH_S_, PH_E, PH_K, PH_S, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* сексвигинтиллион */
+    { 18, PH_S_, PH_E, PH_P, PH_T_, PH_E, PH_N, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* септенвигинтиллион */
+    { 16, PH_A, PH_K, PH_T, PH_A, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* октовигинтиллион */
+    { 17, PH_N, PH_A, PH_V_, PH_E, PH_M, PH_V_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* новемвигинтиллион */
+    { 13, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* тригинтиллион */
+    { 15, PH_U, PH_N, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* унтригинтиллион */
+    { 16, PH_D, PH_U, PH_A, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* дуотригинтиллион */
+    { 16, PH_T, PH_R_, PH_E, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* третригинтиллион */
+    { 21, PH_K, PH_V, PH_A, PH_T, PH_T, PH_U, PH_A, PH_R, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* кваттуортригинтиллион */
+    { 17, PH_K, PH_V_, PH_I, PH_N, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квинтригинтиллион */
+    { 17, PH_S_, PH_E, PH_K, PH_S, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* секстригинтиллион */
+    { 19, PH_S_, PH_E, PH_P, PH_T_, PH_E, PH_N, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* септентригинтиллион */
+    { 17, PH_A, PH_K, PH_T, PH_A, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* октотригинтиллион */
+    { 18, PH_N, PH_A, PH_V_, PH_E, PH_M, PH_T, PH_R_, PH_I, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* новемтригинтиллион */
+    { 16, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квадрагинтиллион */
+    { 18, PH_U, PH_N, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* унквадрагинтиллион */
+    { 19, PH_D, PH_U, PH_A, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* дуоквадрагинтиллион */
+    { 19, PH_T, PH_R_, PH_E, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* треквадрагинтиллион */
+    { 24, PH_K, PH_V, PH_A, PH_T, PH_T, PH_U, PH_A, PH_R, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* кваттуорквадрагинтиллион */
+    { 20, PH_K, PH_V_, PH_I, PH_N, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* квинквадрагинтиллион */
+    { 20, PH_S_, PH_E, PH_K, PH_S, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* сексквадрагинтиллион */
+    { 22, PH_S_, PH_E, PH_P, PH_T_, PH_E, PH_N, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* септенквадрагинтиллион */
+    { 20, PH_A, PH_K, PH_T, PH_A, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* октоквадрагинтиллион */
+    { 21, PH_N, PH_A, PH_V_, PH_E, PH_M, PH_K, PH_V, PH_A, PH_D, PH_R, PH_A, PH_G_, PH_I, PH_N_, PH_T_, PH_I, PH_L_, PH_I, PH_O, PH_PRIMARY_STRESS, PH_N }, /* новемквадрагинтиллион */
   };
+#define NUMBER_PERIODS (sizeof(periods) / sizeof(periods[0]))
 static const uint8_t fractions[] =
   {
     6, PH_D_, PH_E, PH_S_, PH_A, PH_PRIMARY_STRESS, PH_T,
@@ -141,6 +190,36 @@ static int check_dec_point(sink_t *consumer, char c)
     ((flags & DEC_SEP_COMMA) && (c == ','));
 }
 
+/* Compact leading zeroes only. Zeroes inside a cardinal or a decimal
+   fraction carry place value and must not be counted as a separate run. */
+static void transcribe_zeroes(sink_t *consumer, size_t count)
+{
+  char text[3 * sizeof(size_t) + 1];
+  input_t input;
+  static const uint8_t few[] = { PH_N, PH_U, PH_L_, PH_A, PH_PRIMARY_STRESS };
+  static const uint8_t many[] = { PH_N, PH_U, PH_L_, PH_E, PH_PRIMARY_STRESS, PH_J };
+  size_t last_two = count % 100;
+  int length;
+
+  length = snprintf(text, sizeof(text), "%zu", count);
+  input.text = input.start = text;
+  input.end = text + length;
+  process_number(&input, consumer);
+  if (consumer->status)
+    return;
+
+  if ((last_two >= 11) && (last_two <= 14))
+    sink_write(consumer, many, sizeof(many));
+  else if (count % 10 == 1)
+    put_transcription(consumer, primary, 0);
+  else if ((count % 10 >= 2) && (count % 10 <= 4))
+    sink_write(consumer, few, sizeof(few));
+  else
+    sink_write(consumer, many, sizeof(many));
+  sink_put(consumer, PH_SPACE);
+  sink_flush(consumer);
+}
+
 
 /* Global functions */
 
@@ -150,7 +229,43 @@ void process_number(input_t *input, sink_t *consumer)
   unsigned char c;
   uint8_t flags = 0;
 
-  for (c = input->start[0]; IS_DIGIT(c) && (input->start < input->end); c = *(++input->start))
+  if ((input->start < input->end) && (input->start[0] == '0'))
+    {
+      char *zero_end = input->start;
+      char *number_end;
+      while ((zero_end < input->end) && (zero_end[0] == '0'))
+        zero_end++;
+      for (number_end = zero_end; (number_end < input->end) && IS_DIGIT(number_end[0]); number_end++);
+      if (((zero_end - input->start) > 1) &&
+          !(((input->end - number_end) > 1) && check_dec_point(consumer, number_end[0]) && IS_DIGIT(number_end[1])))
+        {
+          transcribe_zeroes(consumer, zero_end - input->start);
+          input->start = zero_end;
+          if (consumer->status || (input->start == input->end) || !IS_DIGIT(input->start[0]))
+            return;
+        }
+    }
+
+  /* Above the named range, preserve every digit rather than interpreting
+     successive chunks as unrelated large cardinals. */
+  {
+    char *number_end = input->start;
+    while ((number_end < input->end) && IS_DIGIT(number_end[0]))
+      number_end++;
+    if ((size_t)(number_end - input->start) > 3 * (NUMBER_PERIODS + 1))
+      {
+        if (sink_last(consumer) != PH_SPACE)
+          sink_put(consumer, PH_SPACE);
+        while ((input->start < number_end) && !consumer->status)
+          {
+            transcribe_digit(consumer, *input->start++, '0');
+            sink_flush(consumer);
+          }
+        return;
+      }
+  }
+
+  for (c = input->start[0]; (input->start < input->end) && IS_DIGIT(c); c = *(++input->start))
     {
       char *s;
       uint8_t digits = 1;
@@ -168,10 +283,10 @@ void process_number(input_t *input, sink_t *consumer)
             if (++digits > 3)
               {
                 digits = 1;
-                if (++triplets > 4)
+                if (++triplets > NUMBER_PERIODS)
                   {
                     digits = 3;
-                    triplets = 4;
+                    triplets = NUMBER_PERIODS;
                     break;
                   }
               }
@@ -301,7 +416,7 @@ void process_number(input_t *input, sink_t *consumer)
                     {
                       if (flags & NON_ZERO)
                         {
-                          put_transcription(consumer, periods, triplets - 1);
+                          sink_write(consumer, periods[triplets - 1] + 1, periods[triplets - 1][0]);
                           if (triplets != 1)
                             {
                               if (nc != 1)

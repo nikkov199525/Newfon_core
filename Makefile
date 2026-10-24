@@ -23,6 +23,10 @@ LIB = $(BUILD_DIR)/libnewfon_core.a
 
 all: $(LIB)
 
+.PHONY: test
+test:
+	python -B tests/test_numerics.py
+
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
 
