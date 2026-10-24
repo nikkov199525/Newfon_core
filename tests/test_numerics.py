@@ -86,11 +86,34 @@ class Numbers(unittest.TestCase):
             suffix = "но+ль" if count % 10 == 1 and count % 100 != 11 else (
                 "нуля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "нуле+й")
             with self.subTest(count=count):
-                self.assertEqual(self.transcription("0" * count),
+                self.assertEqual(self.transcription("0" * count, flags=3 | (2 << 8)),
                                  self.transcription(str(count)) + self.transcription(suffix))
         self.assertReading("0" * 10000, "де+сять ты+сяч нуле+й")
         self.assertReading("00000123", "пя+ть нуле+й сто+ два+дцать три+")
         self.assertReading("0000, 5", "четы+ре нуля+, пя+ть")
+
+    def test_zero_count_threshold(self):
+        self.assertReading("0034", "но+ль но+ль три+дцать четы+ре")
+        self.assertReading("00:34", "но+ль но+ль: три+дцать четы+ре")
+        self.assertReading("00", "но+ль но+ль")
+        self.assertReading("000", "три+ нуля+")
+        for threshold in (2, 3, 4, 10, 100):
+            for count in (1, 2, threshold - 1, threshold, threshold + 1):
+                flags = 3 | (threshold << 8)
+                with self.subTest(threshold=threshold, count=count):
+                    if count < threshold:
+                        expected = self.transcription("0") * count
+                    else:
+                        suffix = "но+ль" if count % 10 == 1 and count % 100 != 11 else (
+                            "нуля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "нуле+й")
+                        expected = self.transcription(str(count)) + self.transcription(suffix)
+                    self.assertEqual(self.transcription("0" * count, flags), expected)
+                    self.assertEqual(self.transcription("0" * count + "34", flags),
+                                     expected + self.transcription("34"))
+            self.assertEqual(self.transcription("0.0001", flags), self.transcription("0.0001"))
+        for invalid in (0, 1, 101, 255):
+            self.assertEqual(self.transcription("00", 3 | (invalid << 8)), self.transcription("00"))
+            self.assertEqual(self.transcription("000", 3 | (invalid << 8)), self.transcription("000"))
 
     def test_internal_zeroes_keep_place_value(self):
         self.assertReading("1000000000000001", "оди+н квадрилио+н оди+н")

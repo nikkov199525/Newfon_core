@@ -32,6 +32,15 @@
                                   Newfon; without this flag the adaptive
                                   powf-based crossfade of ru_tts is used */
 
+/* Minimum leading zero run to count, encoded in flags to preserve the
+   configuration ABI. An unset or invalid value uses the default of 3.
+   Shorter runs are spoken digit by digit. */
+#define NEWFON_ZERO_COUNT_MIN_DEFAULT 3
+#define NEWFON_ZERO_COUNT_MIN_MAX 100
+#define ZERO_COUNT_MIN_SHIFT 8
+#define ZERO_COUNT_MIN_MASK (0xFF << ZERO_COUNT_MIN_SHIFT)
+#define NEWFON_ZERO_COUNT_MIN(n) (((n) & 0xFF) << ZERO_COUNT_MIN_SHIFT)
+
 /* Voices. The tone range of every voice is wired into the core
    and cannot be altered by any configuration parameter. */
 #define NEWFON_VOICE_COUNT 4

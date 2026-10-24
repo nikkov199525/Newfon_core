@@ -233,13 +233,23 @@ void process_number(input_t *input, sink_t *consumer)
     {
       char *zero_end = input->start;
       char *number_end;
+      int zero_count_min = (((ttscb_t *)consumer->user_data)->flags & ZERO_COUNT_MIN_MASK) >> ZERO_COUNT_MIN_SHIFT;
+      if ((zero_count_min < 2) || (zero_count_min > NEWFON_ZERO_COUNT_MIN_MAX))
+        zero_count_min = NEWFON_ZERO_COUNT_MIN_DEFAULT;
       while ((zero_end < input->end) && (zero_end[0] == '0'))
         zero_end++;
       for (number_end = zero_end; (number_end < input->end) && IS_DIGIT(number_end[0]); number_end++);
       if (((zero_end - input->start) > 1) &&
           !(((input->end - number_end) > 1) && check_dec_point(consumer, number_end[0]) && IS_DIGIT(number_end[1])))
         {
-          transcribe_zeroes(consumer, zero_end - input->start);
+          if ((zero_end - input->start) >= zero_count_min)
+            transcribe_zeroes(consumer, zero_end - input->start);
+          else
+            while ((input->start < zero_end) && !consumer->status)
+              {
+                transcribe_digit(consumer, *input->start++, '0');
+                sink_flush(consumer);
+              }
           input->start = zero_end;
           if (consumer->status || (input->start == input->end) || !IS_DIGIT(input->start[0]))
             return;
