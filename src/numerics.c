@@ -196,8 +196,9 @@ static void transcribe_zeroes(sink_t *consumer, size_t count)
 {
   char text[3 * sizeof(size_t) + 1];
   input_t input;
-  static const uint8_t few[] = { PH_N, PH_U, PH_L_, PH_A, PH_PRIMARY_STRESS };
-  static const uint8_t many[] = { PH_N, PH_U, PH_L_, PH_E, PH_PRIMARY_STRESS, PH_J };
+  /* "ноля", "нолей": the unstressed [о] is reduced to [а] as in "одна". */
+  static const uint8_t few[] = { PH_N, PH_A, PH_L_, PH_A, PH_PRIMARY_STRESS };
+  static const uint8_t many[] = { PH_N, PH_A, PH_L_, PH_E, PH_PRIMARY_STRESS, PH_J };
   size_t last_two = count % 100;
   int length;
 

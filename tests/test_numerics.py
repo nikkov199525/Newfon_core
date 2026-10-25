@@ -84,19 +84,19 @@ class Numbers(unittest.TestCase):
     def test_zero_counts(self):
         for count in range(2, 126):
             suffix = "но+ль" if count % 10 == 1 and count % 100 != 11 else (
-                "нуля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "нуле+й")
+                "ноля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "ноле+й")
             with self.subTest(count=count):
                 self.assertEqual(self.transcription("0" * count, flags=3 | (2 << 8)),
                                  self.transcription(str(count)) + self.transcription(suffix))
-        self.assertReading("0" * 10000, "де+сять ты+сяч нуле+й")
-        self.assertReading("00000123", "пя+ть нуле+й сто+ два+дцать три+")
-        self.assertReading("0000, 5", "четы+ре нуля+, пя+ть")
+        self.assertReading("0" * 10000, "де+сять ты+сяч ноле+й")
+        self.assertReading("00000123", "пя+ть ноле+й сто+ два+дцать три+")
+        self.assertReading("0000, 5", "четы+ре ноля+, пя+ть")
 
     def test_zero_count_threshold(self):
         self.assertReading("0034", "но+ль но+ль три+дцать четы+ре")
         self.assertReading("00:34", "но+ль но+ль: три+дцать четы+ре")
         self.assertReading("00", "но+ль но+ль")
-        self.assertReading("000", "три+ нуля+")
+        self.assertReading("000", "три+ ноля+")
         for threshold in (2, 3, 4, 10, 100):
             for count in (1, 2, threshold - 1, threshold, threshold + 1):
                 flags = 3 | (threshold << 8)
@@ -105,7 +105,7 @@ class Numbers(unittest.TestCase):
                         expected = self.transcription("0") * count
                     else:
                         suffix = "но+ль" if count % 10 == 1 and count % 100 != 11 else (
-                            "нуля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "нуле+й")
+                            "ноля+" if count % 10 in (2, 3, 4) and count % 100 not in (12, 13, 14) else "ноле+й")
                         expected = self.transcription(str(count)) + self.transcription(suffix)
                     self.assertEqual(self.transcription("0" * count, flags), expected)
                     self.assertEqual(self.transcription("0" * count + "34", flags),
